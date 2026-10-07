@@ -1,0 +1,30 @@
+# Test and lint tooling plus the lightweight runtime libraries the unit tests import.
+# The heavy document-processing stack (unstructured, pdf2image) is intentionally excluded:
+# tests mock it. Install the full runtime with `pip install -r requirements.txt`.
+pytest==8.2.2
+pytest-asyncio==0.23.7
+pytest-mock==3.14.0
+pyflakes==3.2.0
+
+fastapi==0.115.2
+httpx==0.27.0
+python-multipart==0.0.9
+sqlalchemy[asyncio]==2.0.30
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+pymilvus==2.4.3
+openai==1.35.3
+anthropic==0.28.0
+groq==0.9.0
+cohere==5.5.8
+pypdf==4.2.0
+python-docx==1.1.2
+pydantic==2.9.2
+pydantic-settings==2.3.4
+mcp==1.0.0
+structlog==24.2.0
+datadog==0.49.1
+ddtrace==2.9.0
+marshmallow<4
+aiohttp==3.9.5
+requests==2.32.3

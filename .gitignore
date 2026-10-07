@@ -1,0 +1,41 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage/
+
+# Build output
+dist/
+build/
+
+# Node (if a web client is added)
+node_modules/
+
+# Local data, logs and uploads
+*.log
+logs/
+*.sqlite
+*.sqlite3
+*.db
+uploads/
+tmp/
+data/
+
+# Editors and OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

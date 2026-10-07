@@ -1,0 +1,46 @@
+# Backend runtime dependencies (API, agents, MCP servers, document processing)
+
+# API framework
+fastapi==0.115.2
+uvicorn[standard]==0.29.0
+python-multipart==0.0.9
+httpx==0.27.0
+aiohttp==3.9.5
+requests==2.32.3
+
+# Relational persistence
+sqlalchemy[asyncio]==2.0.30
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+alembic==1.13.1
+
+# Vector database (Milvus / Zilliz Cloud)
+pymilvus==2.4.3
+
+# Model providers and retrieval services
+anthropic==0.28.0
+openai==1.35.3
+google-generativeai==0.7.2
+groq==0.9.0
+cohere==5.5.8
+
+# Model Context Protocol servers
+mcp==1.0.0
+
+# Document processing
+unstructured[pdf]==0.14.4
+pdf2image==1.17.0
+Pillow==10.3.0
+pypdf==4.2.0
+python-docx==1.1.2
+
+# Configuration, validation and logging
+pydantic==2.9.2
+pydantic-settings==2.3.4
+structlog==24.2.0
+
+# Observability (Datadog APM, DogStatsD)
+ddtrace==2.9.0
+# ddtrace 2.9 depends on environs, which is incompatible with marshmallow 4
+marshmallow<4
+datadog==0.49.1

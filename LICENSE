@@ -1,0 +1,18 @@
+Copyright (c) 2026. All rights reserved.
+
+PROPRIETARY SOURCE-AVAILABLE NOTICE
+
+This repository is published for portfolio, technical-evaluation and code-review purposes
+only. Viewing the source code is permitted. No licence is granted to copy, modify, merge,
+publish, distribute, sublicense, sell, deploy or otherwise use this software, in whole or in
+part, in any commercial or production setting, or to use it to train machine-learning models,
+without prior written permission from the copyright holder.
+
+This repository contains no client data, credentials or confidential datasets. Any
+third-party libraries referenced in the dependency manifests remain subject to their own
+licences.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR ITS USE.

@@ -1,0 +1,70 @@
+services:
+  - type: web
+    name: legal-intel-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    # ddtrace-run instruments FastAPI, SQLAlchemy and HTTP clients at process start
+    startCommand: ddtrace-run uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHONPATH
+        value: /opt/render/project/src
+      # AI Providers
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: COHERE_API_KEY
+        sync: false
+      # Vector DB
+      - key: ZILLIZ_CLOUD_URI
+        sync: false
+      - key: ZILLIZ_CLOUD_API_KEY
+        sync: false
+      # Relational DB
+      - key: DATABASE_URL
+        fromDatabase:
+          name: legal-intel-db
+          property: connectionString
+      - key: DATABASE_URL_SYNC
+        fromDatabase:
+          name: legal-intel-db
+          property: connectionString
+      # Datadog — APM + Metrics + LLM Observability
+      - key: DD_API_KEY
+        sync: false
+      - key: DD_SITE
+        value: datadoghq.com
+      - key: DD_SERVICE
+        value: legal-intel-agent
+      - key: DD_ENV
+        value: production
+      - key: DD_VERSION
+        value: "1.0.0"
+      - key: DD_TRACE_ENABLED
+        value: "true"
+      - key: DD_LOGS_INJECTION
+        value: "true"
+      - key: DD_RUNTIME_METRICS_ENABLED
+        value: "true"
+      # Point DD_AGENT_HOST at a reachable Datadog Agent, or set DD_TRACE_ENABLED=false.
+      - key: DD_AGENT_HOST
+        value: localhost
+      # App
+      - key: APP_ENV
+        value: production
+      - key: APP_VERSION
+        value: "1.0.0"
+      - key: CORS_ORIGINS
+        sync: false
+
+databases:
+  - name: legal-intel-db
+    plan: free
+    databaseName: legalintel
+    user: legaluser

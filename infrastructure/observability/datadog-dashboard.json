@@ -1,0 +1,351 @@
+{
+  "title": "Legal Intelligence Agent — Datadog Operations Dashboard",
+  "description": "Full-stack observability: APM traces, LLM Observability, custom metrics, cost tracking",
+  "template_variables": [
+    { "name": "env", "prefix": "env", "default": "production" },
+    { "name": "service", "prefix": "service", "default": "legal-intel-agent" }
+  ],
+  "layout_type": "ordered",
+  "widgets": [
+    {
+      "id": 1,
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "title": "📊 Business Overview",
+        "widgets": [
+          {
+            "id": 11,
+            "definition": {
+              "type": "query_value",
+              "title": "Total Reviews (24h)",
+              "requests": [{ "q": "sum:legal_intel.review.completed{$env,$service}.as_count()" }],
+              "autoscale": true,
+              "precision": 0
+            }
+          },
+          {
+            "id": 12,
+            "definition": {
+              "type": "query_value",
+              "title": "Total AI Cost (24h) USD",
+              "requests": [{ "q": "sum:legal_intel.review.cost_usd{$env,$service}" }],
+              "autoscale": true,
+              "precision": 4,
+              "custom_unit": "USD"
+            }
+          },
+          {
+            "id": 13,
+            "definition": {
+              "type": "query_value",
+              "title": "Cache Hit Rate",
+              "requests": [{
+                "q": "sum:legal_intel.search.cache_hits{$env,$service}.as_count() / (sum:legal_intel.search.cache_hits{$env,$service}.as_count() + sum:legal_intel.search.cache_misses{$env,$service}.as_count()) * 100"
+              }],
+              "precision": 1,
+              "custom_unit": "%"
+            }
+          },
+          {
+            "id": 14,
+            "definition": {
+              "type": "query_value",
+              "title": "LLM Judge Score",
+              "requests": [{ "q": "avg:legal_intel.judge.overall_score{$env,$service}" }],
+              "precision": 1,
+              "custom_unit": "%"
+            }
+          },
+          {
+            "id": 15,
+            "definition": {
+              "type": "query_value",
+              "title": "Red-Team Failure Rate",
+              "requests": [{ "q": "avg:legal_intel.redteam.failure_rate{$env,$service}" }],
+              "precision": 1,
+              "custom_unit": "%"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "title": "⚡ APM — Request Performance",
+        "widgets": [
+          {
+            "id": 21,
+            "definition": {
+              "type": "timeseries",
+              "title": "API Request Latency — p50 / p95 / p99",
+              "requests": [
+                { "q": "p50:legal_intel.api.latency_ms{$env,$service}", "display_type": "line" },
+                { "q": "p95:legal_intel.api.latency_ms{$env,$service}", "display_type": "line" },
+                { "q": "p99:legal_intel.api.latency_ms{$env,$service}", "display_type": "line" }
+              ],
+              "yaxis": { "label": "ms" }
+            }
+          },
+          {
+            "id": 22,
+            "definition": {
+              "type": "timeseries",
+              "title": "API Error Rate by Endpoint",
+              "requests": [
+                { "q": "sum:legal_intel.api.errors_5xx{$env,$service} by {endpoint}.as_rate()", "display_type": "bars" }
+              ]
+            }
+          },
+          {
+            "id": 23,
+            "definition": {
+              "type": "timeseries",
+              "title": "Contract Review Throughput",
+              "requests": [
+                { "q": "sum:legal_intel.review.completed{$env,$service}.as_count()", "display_type": "bars" }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "title": "🤖 LLM Observability — 4 Agent Pipeline",
+        "widgets": [
+          {
+            "id": 31,
+            "definition": {
+              "type": "timeseries",
+              "title": "Agent Latency by Model (p95)",
+              "requests": [
+                { "q": "p95:legal_intel.agent.latency_ms{$env,agent:extractor}", "display_type": "line" },
+                { "q": "p95:legal_intel.agent.latency_ms{$env,agent:risk_analyst}", "display_type": "line" },
+                { "q": "p95:legal_intel.agent.latency_ms{$env,agent:comparator}", "display_type": "line" },
+                { "q": "p95:legal_intel.agent.latency_ms{$env,agent:synthesis}", "display_type": "line" }
+              ],
+              "yaxis": { "label": "ms" }
+            }
+          },
+          {
+            "id": 32,
+            "definition": {
+              "type": "timeseries",
+              "title": "Token Usage by Agent",
+              "requests": [
+                { "q": "sum:legal_intel.agent.tokens.input{$env,$service} by {agent}.as_count()", "display_type": "bars" },
+                { "q": "sum:legal_intel.agent.tokens.output{$env,$service} by {agent}.as_count()", "display_type": "bars" }
+              ]
+            }
+          },
+          {
+            "id": 33,
+            "definition": {
+              "type": "timeseries",
+              "title": "AI Cost per Hour by Model",
+              "requests": [
+                { "q": "sum:legal_intel.agent.cost_usd{$env,model:claude-sonnet-4-5}.as_rate() * 3600", "display_type": "line" },
+                { "q": "sum:legal_intel.agent.cost_usd{$env,model:gpt-4o}.as_rate() * 3600", "display_type": "line" },
+                { "q": "sum:legal_intel.agent.cost_usd{$env,model:gemini-1.5-pro}.as_rate() * 3600", "display_type": "line" },
+                { "q": "sum:legal_intel.agent.cost_usd{$env,model:claude-opus-4-5}.as_rate() * 3600", "display_type": "line" }
+              ],
+              "yaxis": { "label": "USD/hr" }
+            }
+          },
+          {
+            "id": 34,
+            "definition": {
+              "type": "timeseries",
+              "title": "Agent Error Rate",
+              "requests": [
+                { "q": "sum:legal_intel.agent.errors{$env,$service} by {agent}.as_rate()", "display_type": "bars" }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "title": "🗂️ Milvus Vector DB",
+        "widgets": [
+          {
+            "id": 41,
+            "definition": {
+              "type": "timeseries",
+              "title": "Milvus Search Latency — p50 / p95",
+              "requests": [
+                { "q": "p50:legal_intel.milvus.search_latency_ms{$env,$service}", "display_type": "line" },
+                { "q": "p95:legal_intel.milvus.search_latency_ms{$env,$service}", "display_type": "line" }
+              ]
+            }
+          },
+          {
+            "id": 42,
+            "definition": {
+              "type": "timeseries",
+              "title": "Cache Hit vs Miss Rate",
+              "requests": [
+                { "q": "sum:legal_intel.milvus.cache_hits{$env,$service}.as_count()", "display_type": "bars" },
+                { "q": "sum:legal_intel.milvus.cache_misses{$env,$service}.as_count()", "display_type": "bars" }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "title": "📊 Quality Gates — Judge & Red-Team",
+        "widgets": [
+          {
+            "id": 51,
+            "definition": {
+              "type": "timeseries",
+              "title": "LLM Judge — 4 Dimension Scores Over Time",
+              "requests": [
+                { "q": "avg:legal_intel.judge.overall_score{$env,$service}", "display_type": "line" },
+                { "q": "avg:legal_intel.judge.correctness_score{$env,$service}", "display_type": "line" },
+                { "q": "avg:legal_intel.judge.completeness_score{$env,$service}", "display_type": "line" },
+                { "q": "avg:legal_intel.judge.actionability_score{$env,$service}", "display_type": "line" }
+              ],
+              "yaxis": { "min": "0", "max": "100", "label": "%" }
+            }
+          },
+          {
+            "id": 52,
+            "definition": {
+              "type": "timeseries",
+              "title": "Red-Team Failure Rate by Iteration",
+              "requests": [
+                { "q": "avg:legal_intel.redteam.failure_rate{$env,$service} by {iteration}", "display_type": "line" }
+              ],
+              "yaxis": { "min": "0", "max": "100", "label": "%" }
+            }
+          },
+          {
+            "id": 53,
+            "definition": {
+              "type": "timeseries",
+              "title": "Red-Team Failure by Attack Category",
+              "requests": [
+                { "q": "avg:legal_intel.redteam.category_failure_rate{$env,$service} by {category}", "display_type": "line" }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "title": "📡 Regulatory Monitoring",
+        "widgets": [
+          {
+            "id": 61,
+            "definition": {
+              "type": "timeseries",
+              "title": "Regulatory Changes Detected by Source",
+              "requests": [
+                { "q": "sum:legal_intel.regulatory.changes_detected{$env,$service} by {source}.as_count()", "display_type": "bars" }
+              ]
+            }
+          },
+          {
+            "id": 62,
+            "definition": {
+              "type": "timeseries",
+              "title": "Contracts Impacted per Check",
+              "requests": [
+                { "q": "avg:legal_intel.regulatory.contracts_impacted{$env,$service}", "display_type": "line" }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "title": "💰 FinOps — AI Cost Tracking",
+        "widgets": [
+          {
+            "id": 71,
+            "definition": {
+              "type": "timeseries",
+              "title": "Daily AI Cost by Feature",
+              "requests": [
+                { "q": "sum:legal_intel.cost.usd{$env,$service,feature:review}.as_count()", "display_type": "bars" },
+                { "q": "sum:legal_intel.cost.usd{$env,$service,feature:search}.as_count()", "display_type": "bars" }
+              ]
+            }
+          },
+          {
+            "id": 72,
+            "definition": {
+              "type": "timeseries",
+              "title": "Cache Savings vs Actual Cost",
+              "requests": [
+                { "q": "sum:legal_intel.cost.cache_savings_usd{$env,$service}.as_count()", "display_type": "bars" },
+                { "q": "sum:legal_intel.cost.usd{$env,$service}.as_count()", "display_type": "bars" }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "title": "🔍 Risk Distribution",
+        "widgets": [
+          {
+            "id": 81,
+            "definition": {
+              "type": "timeseries",
+              "title": "Reviews by Risk Level",
+              "requests": [
+                { "q": "sum:legal_intel.review.risk.critical{$env,$service}.as_count()", "display_type": "bars" },
+                { "q": "sum:legal_intel.review.risk.high{$env,$service}.as_count()", "display_type": "bars" },
+                { "q": "sum:legal_intel.review.risk.medium{$env,$service}.as_count()", "display_type": "bars" },
+                { "q": "sum:legal_intel.review.risk.low{$env,$service}.as_count()", "display_type": "bars" }
+              ]
+            }
+          },
+          {
+            "id": 82,
+            "definition": {
+              "type": "timeseries",
+              "title": "Vision Processing — Pages Analyzed",
+              "requests": [
+                { "q": "sum:legal_intel.vision.pages_processed{$env,$service,provider:claude}.as_count()", "display_type": "bars" },
+                { "q": "sum:legal_intel.vision.pages_processed{$env,$service,provider:gpt-4o}.as_count()", "display_type": "bars" }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "notify_list": [],
+  "reflow_type": "fixed"
+}

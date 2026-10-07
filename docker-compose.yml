@@ -1,0 +1,73 @@
+# Local stack: API, Streamlit UI and PostgreSQL.
+# The Datadog Agent is optional: enable it with `docker compose --profile observability up`
+# (requires DD_API_KEY, DD_AGENT_HOST=datadog-agent and DD_TRACE_ENABLED=true in .env).
+# Required: POSTGRES_PASSWORD (set it in .env). AI provider keys and Milvus credentials are
+# read from .env as well.
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://legaluser:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/legalintel
+      DATABASE_URL_SYNC: postgresql://legaluser:${POSTGRES_PASSWORD}@postgres:5432/legalintel
+      # With the observability profile, set DD_AGENT_HOST=datadog-agent and DD_TRACE_ENABLED=true in .env.
+      DD_AGENT_HOST: ${DD_AGENT_HOST:-localhost}
+      DD_TRACE_ENABLED: ${DD_TRACE_ENABLED:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.frontend
+    ports:
+      - "8501:8501"
+    environment:
+      BACKEND_URL: http://backend:8000
+    depends_on:
+      - backend
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: legaluser
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: legalintel
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U legaluser -d legalintel"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Collects APM traces and DogStatsD metrics and forwards container logs.
+  datadog-agent:
+    profiles: ["observability"]
+    image: gcr.io/datadoghq/agent:7
+    environment:
+      DD_API_KEY: ${DD_API_KEY:-}
+      DD_SITE: ${DD_SITE:-datadoghq.com}
+      DD_APM_ENABLED: "true"
+      DD_APM_NON_LOCAL_TRAFFIC: "true"
+      DD_DOGSTATSD_NON_LOCAL_TRAFFIC: "true"
+      DD_LOGS_ENABLED: "true"
+      DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
+      DD_CONTAINER_EXCLUDE: "name:datadog-agent"
+      DD_HOSTNAME: legal-intel-agent-local
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+
+volumes:
+  postgres_data:
